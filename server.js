@@ -4,63 +4,28 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
-const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-const OPENAI_KEY = process.env.OPENAI_KEY;
+const TOKEN = process.env.BOT_TOKEN;
 
-// Simple test page
 app.get("/", (req, res) => {
   res.send("Hushbe AI Bot is running.");
 });
 
-// Webhook endpoint
 app.post("/webhook", async (req, res) => {
   const message = req.body.message;
 
-  if (!message || !message.text) {
-    return res.sendStatus(200);
-  }
+  if (message) {
+    const chatId = message.chat.id;
 
-  const chatId = message.chat.id;
-  const userText = message.text;
-
-  try {
-    const aiResponse = await axios.post(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        model: "gpt-4o-mini",
-        messages: [
-          { role: "system", content: "You are Hushbe AI. Intelligent and direct." },
-          { role: "user", content: userText }
-        ]
-      },
-      {
-        headers: {
-          "Authorization": `Bearer ${OPENAI_KEY}`,
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    const reply = aiResponse.data.choices[0].message.content;
-
-    await axios.post(
-      `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
-      {
-        chat_id: chatId,
-        text: reply
-      }
-    );
-
-  } catch (error) {
-    console.log(error.message);
+    await axios.post(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      chat_id: chatId,
+      text: "Bot is connected successfully."
+    });
   }
 
   res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
-  console.log("Server started on port " + PORT);
+  console.log("Server running...");
 });
-  
